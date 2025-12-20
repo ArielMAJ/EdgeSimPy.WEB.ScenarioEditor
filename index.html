@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdgeSimPy Scenario Editor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+
+    .actions {
+      display: flex;
+      gap: 15px;
+      padding: 20px 30px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: #f8f9fa;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-header:hover {
+      background: #e9ecef;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 1.2em;
+      color: #1f2937;
+    }
+
+    .section-count {
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85em;
+    }
+
+    .section-body {
+      padding: 20px;
+      display: none;
+    }
+
+    .section.expanded .section-body {
+      display: block;
+    }
+
+    .section.expanded .toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    .toggle-icon {
+      transition: transform 0.3s;
+      font-size: 1.2em;
+      color: #667eea;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .item-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      background: #fafafa;
+      transition: all 0.2s;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .item-id {
+      font-weight: 600;
+      color: #667eea;
+      font-size: 1.1em;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .item-details {
+      font-size: 0.9em;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .item-details div {
+      margin-bottom: 5px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 800px;
+      margin: 40px auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      padding: 20px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.5em;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5em;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .modal-body {
+      padding: 30px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .modal-footer {
+      padding: 20px 30px;
+      background: #f8f9fa;
+      border-radius: 0 0 12px 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .search-box {
+      padding: 10px 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>EdgeSimPy Scenario Editor</h1>
+      <p>Edit your EdgeSimPy JSON scenario configuration with ease</p>
+    </div>
+
+    <div class="actions">
+      <input type="file" id="fileInput" accept=".json" style="display: none;">
+      <button class="btn btn-primary" onclick="loadFromURL()">
+        📥 Load from URL
+      </button>
+      <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+        📂 Upload JSON
+      </button>
+      <button class="btn btn-success" onclick="downloadJSON()">
+        💾 Download JSON
+      </button>
+      <input type="text" class="search-box" id="searchBox" placeholder="Search by ID or component type...">
+    </div>
+
+    <div class="content" id="content">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Click "Load from URL" to load the default EdgeSimPy configuration</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Edit Item</h2>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Form will be dynamically generated -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-success" onclick="saveItem()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let data = {};
+    let currentEdit = { type: null, index: null };
+
+    const DEFAULT_URL = 'https://raw.githubusercontent.com/ArielMAJ/EdgeSimPy.API/refs/heads/test/test.json';
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            data = JSON.parse(e.target.result);
+            renderUI();
+          } catch (err) {
+            alert('Invalid JSON file');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    document.getElementById('searchBox').addEventListener('input', e => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll('.section').forEach(section => {
+        const type = section.dataset.type;
+        const items = section.querySelectorAll('.item-card');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+          const text = item.textContent.toLowerCase();
+          if (text.includes(query) || type.toLowerCase().includes(query)) {
+            item.style.display = '';
+            visibleCount++;
+          } else {
+            item.style.display = 'none';
+          }
+        });
+
+        section.style.display = visibleCount > 0 || type.toLowerCase().includes(query) ? '' : 'none';
+      });
+    });
+
+    async function loadFromURL() {
+      try {
+        const response = await fetch(DEFAULT_URL);
+        data = await response.json();
+        renderUI();
+      } catch (err) {
+        alert('Failed to load JSON from URL');
+      }
+    }
+
+    function renderUI() {
+      const content = document.getElementById('content');
+      content.innerHTML = '';
+
+      Object.keys(data).forEach(type => {
+        if (!Array.isArray(data[type])) return;
+
+        const section = document.createElement('div');
+        section.className = 'section';
+        section.dataset.type = type;
+
+        section.innerHTML = `
+          <div class="section-header" onclick="toggleSection(this)">
+            <div class="section-title">
+              <span class="toggle-icon">▶</span>
+              <span>${type}</span>
+              <span class="section-count">${data[type].length} items</span>
+            </div>
+            <button class="btn btn-success" onclick="event.stopPropagation(); addItem('${type}')">
+              ➕ Add ${type}
+            </button>
+          </div>
+          <div class="section-body">
+            <div class="items-grid" id="${type}-items"></div>
+          </div>
+        `;
+
+        content.appendChild(section);
+        renderItems(type);
+      });
+    }
+
+    function renderItems(type) {
+      const container = document.getElementById(`${type}-items`);
+      container.innerHTML = '';
+
+      data[type].forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+
+        const id = item.attributes?.id || item.id || idx;
+        const details = getItemSummary(item, type);
+
+        card.innerHTML = `
+          <div class="item-header">
+            <div class="item-id">#${id}</div>
+            <div class="item-actions">
+              <button class="btn btn-secondary" onclick="editItem('${type}', ${idx})">✏️</button>
+              <button class="btn btn-danger" onclick="deleteItem('${type}', ${idx})">🗑️</button>
+            </div>
+          </div>
+          <div class="item-details">${details}</div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function getItemSummary(item, type) {
+      const lines = [];
+      
+      if (item.attributes) {
+        Object.keys(item.attributes).slice(0, 4).forEach(key => {
+          let val = item.attributes[key];
+          if (Array.isArray(val)) val = `[${val.length} items]`;
+          else if (typeof val === 'object') val = '[object]';
+          else if (String(val).length > 30) val = String(val).substring(0, 30) + '...';
+          lines.push(`<div><strong>${key}:</strong> ${val}</div>`);
+        });
+      } else {
+        Object.keys(item).slice(0, 4).forEach(key => {
+          let val = item[key];
+          if (Array.isArray(val)) val = `[${val.length} items]`;
+          else if (typeof val === 'object' && val !== null) val = '[object]';
+          else if (String(val).length > 30) val = String(val).substring(0, 30) + '...';
+          lines.push(`<div><strong>${key}:</strong> ${val}</div>`);
+        });
+      }
+
+      return lines.join('') || '<div><em>No attributes</em></div>';
+    }
+
+    function toggleSection(header) {
+      const section = header.parentElement;
+      section.classList.toggle('expanded');
+    }
+
+    function addItem(type) {
+      currentEdit = { type, index: null };
+      const template = data[type][0] || {};
+      const newItem = JSON.parse(JSON.stringify(template));
+      
+      if (newItem.attributes?.id !== undefined) {
+        const maxId = Math.max(0, ...data[type].map(i => i.attributes?.id || 0));
+        newItem.attributes.id = maxId + 1;
+      }
+
+      openEditModal(newItem, type, true);
+    }
+
+    function editItem(type, idx) {
+      currentEdit = { type, index: idx };
+      openEditModal(data[type][idx], type, false);
+    }
+
+    function deleteItem(type, idx) {
+      if (confirm('Are you sure you want to delete this item?')) {
+        data[type].splice(idx, 1);
+        renderItems(type);
+        updateCount(type);
+      }
+    }
+
+    function openEditModal(item, type, isNew) {
+      document.getElementById('modalTitle').textContent = `${isNew ? 'Add' : 'Edit'} ${type}`;
+      const body = document.getElementById('modalBody');
+      body.innerHTML = '';
+
+      const form = document.createElement('form');
+      form.id = 'editForm';
+      
+      const textarea = document.createElement('textarea');
+      textarea.className = 'form-control';
+      textarea.style.minHeight = '400px';
+      textarea.value = JSON.stringify(item, null, 2);
+      
+      const group = document.createElement('div');
+      group.className = 'form-group';
+      const label = document.createElement('label');
+      label.textContent = 'JSON Data (edit directly)';
+      group.appendChild(label);
+      group.appendChild(textarea);
+      form.appendChild(group);
+
+      body.appendChild(form);
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').classList.remove('active');
+      currentEdit = { type: null, index: null };
+    }
+
+    function saveItem() {
+      try {
+        const textarea = document.querySelector('#editForm textarea');
+        const editedItem = JSON.parse(textarea.value);
+
+        if (currentEdit.index !== null) {
+          data[currentEdit.type][currentEdit.index] = editedItem;
+        } else {
+          data[currentEdit.type].push(editedItem);
+        }
+
+        renderItems(currentEdit.type);
+        updateCount(currentEdit.type);
+        closeModal();
+      } catch (err) {
+        alert('Invalid JSON: ' + err.message);
+      }
+    }
+
+    function updateCount(type) {
+      const section = document.querySelector(`[data-type="${type}"] .section-count`);
+      if (section) {
+        section.textContent = `${data[type].length} items`;
+      }
+    }
+
+    function downloadJSON() {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'edgesimpy-config.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Click outside modal to close
+    document.getElementById('editModal').addEventListener('click', e => {
+      if (e.target.id === 'editModal') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
