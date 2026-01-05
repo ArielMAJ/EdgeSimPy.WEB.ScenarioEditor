@@ -1,6 +1,6 @@
 # EdgeSimPy Scenario Editor
 
-A web frontend component of [EdgeSimPy.WEB.Sys](https://github.com/ArielMAJ/EdgeSimPy.WEB.Sys) for creating and configuring edge computing simulation scenarios.
+A web frontend component of [EdgeSimPy.WEB.Sys](https://github.com/ArielMAJ/EdgeSimPy.WEB.Sys) for visualizing, editing, and managing EdgeSimPy JSON configurations scenarios with an intuitive interface, no installation required.
 
 ## Quick Start
 
@@ -17,7 +17,7 @@ bun install         # npm install
 bun dev             # npm run dev
 ```
 
-The app runs at `http://localhost:5173`
+The app runs at `http://localhost:8080`
 
 ### Other Commands
 
